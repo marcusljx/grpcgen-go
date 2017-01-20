@@ -1,6 +1,9 @@
 # grpcgen-go
 Generating Client Code and Server Boilerplate using gRPC
 
+[![Build Status](https://travis-ci.org/marcusljx/grpcgen-go.svg?branch=master)](https://travis-ci.org/marcusljx/grpcgen-go)
+
+
 ## Goal
 The goal is to be able to create a simple working microservice using the following steps:
 
