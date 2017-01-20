@@ -1,0 +1,10 @@
+{{ $serverString := .ServerPackageString -}}
+{{ $package := .Package -}}
+{{ $packagePath := .PackagePath -}}
+package {{ $serverString }}
+
+import (
+    "golang.org/x/net/context"
+    {{ $packagePath }}
+)
+
