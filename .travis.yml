@@ -2,12 +2,15 @@ language: go
 
 go:
   - tip
+
+sudo: required
+
 before_install:
   - go get -t -v ./...
   - go get github.com/mattn/goveralls
  
 script:
-  - ./.codecov_test.sh  # Run code coverage test
+  - sudo ./.codecov_test.sh  # Run code coverage test
   
 after_success:
   - bash <(curl -s https://codecov.io/bash)
