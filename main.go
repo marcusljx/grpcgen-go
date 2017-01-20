@@ -7,7 +7,7 @@ import (
 
 	"path/filepath"
 
-	"github.com/marcusljx/grpcgen/serverwriter"
+	"github.com/marcusljx/grpcgen-go/serverwriter"
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 
 	"io/ioutil"
 
-	"github.com/marcusljx/grpcgen/functions"
+	"github.com/marcusljx/grpcgen-go/functions"
 )
 
 const (
