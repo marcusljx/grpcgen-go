@@ -1,12 +1,11 @@
 package serverwriter
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"io/ioutil"
 
 	"github.com/marcusljx/grpcgen-go/functions"
 )
