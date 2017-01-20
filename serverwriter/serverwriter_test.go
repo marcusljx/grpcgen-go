@@ -2,10 +2,15 @@ package serverwriter
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
+	"text/template"
 
-	"github.com/alecthomas/template"
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	templates_location, _ = filepath.Abs("templates")
 )
 
 func TestMain(m *testing.M) {
@@ -21,7 +26,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestNewServerWriter(t *testing.T) {
-	s := NewServerWriter("output", "github.com/testing/testPackage", "./serverwriter/templates")
+	s := NewServerWriter("output", "github.com/testing/testPackage", templates_location)
 	assert.IsType(t, &ServerWriter{}, s, "Did not create type ServerWriter")
 
 	assert.Equal(t, "output", s.outputRootPath)
