@@ -45,22 +45,7 @@ type ServerWriter struct {
 	template  *template.Template
 }
 
-func createTemplateObject(templatesDirPath string) *template.Template {
-	// Create Server Template
-	tmpl := template.
-		New("ServerWriter").
-		Funcs(funcMap)
-	// Read all serverwriter templates
-	files, err := ioutil.ReadDir(templatesDirPath)
-	functions.CheckFatal(err)
-	for _, fInfo := range files {
-		_, err := tmpl.ParseFiles(filepath.Join(templatesDirPath, fInfo.Name()))
-		functions.CheckFatal(err)
-	}
-	return tmpl
-}
-
-func NewServerWriter(gopathOutputPath, serverTemplatesFullPath string) *ServerWriter {
+func NewServerWriter(gopathOutputPath string) *ServerWriter {
 	serviceName := filepath.Base(gopathOutputPath)
 	serviceRootFullPath := functions.QualifyFromGopathSrc(gopathOutputPath)
 
@@ -79,9 +64,24 @@ func NewServerWriter(gopathOutputPath, serverTemplatesFullPath string) *ServerWr
 		ProtoPackageFullPath:   protoPackageFullPath,
 		ProtoPackageImportPath: protoPackageImportPath,
 		ProtoFileFullPath:      protoFileFullPath,
-		template:               createTemplateObject(serverTemplatesFullPath),
 		Functions:              protoparser.ReadRPCs(protoFileFullPath),
 	}
+}
+
+func (s *ServerWriter) TemplateDir(templatesDirPath string) *ServerWriter {
+	// Create Server Template
+	tmpl := template.
+		New("ServerWriter").
+		Funcs(funcMap)
+	// Read all serverwriter templates
+	files, err := ioutil.ReadDir(templatesDirPath)
+	functions.CheckFatal(err)
+	for _, fInfo := range files {
+		_, err := tmpl.ParseFiles(filepath.Join(templatesDirPath, fInfo.Name()))
+		functions.CheckFatal(err)
+	}
+	s.template = tmpl
+	return s
 }
 
 func (s *ServerWriter) Create() {

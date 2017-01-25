@@ -14,18 +14,21 @@ const (
 	rpcRegex = `rpc (\w+)\((\w+)\) returns \((\w+)\)`
 )
 
-func ReadRPCs(filepath string) (rpcs []*protorep.RPC) {
-	f, err := os.Open(filepath)
-	if err != nil {
-		log.Fatalf("ReadRPCs(%s)::%v", filepath, err)
-	}
-	defer f.Close()
+var(
+	defaultProtoParser = &ProtoParser{}
+)
 
+type ProtoParser struct {
+	rpcs     []*protorep.RPC
+}
+
+func (p *ProtoParser) AddRPC(rpc *protorep.RPC) {
+	p.rpcs = append(p.rpcs, rpc)
+}
+
+func (p *ProtoParser) Parse(f *os.File) {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
-	if err != nil {
-		log.Fatalf("ReadRPCs(%s)::%v", filepath, err)
-	}
 
 	re := regexp.MustCompile(rpcRegex)
 	for {
@@ -46,12 +49,25 @@ func ReadRPCs(filepath string) (rpcs []*protorep.RPC) {
 					},
 				}
 				// Add to result
-				rpcs = append(rpcs, rpcObj)
+				p.AddRPC(rpcObj)
 			}
 		} else {
 			break
 		}
 	}
+}
 
-	return
+func (p *ProtoParser) GetRPCs() ([]*protorep.RPC) {
+	return p.rpcs
+}
+
+func ReadRPCs(filepath string) (rpcs []*protorep.RPC) {
+	f, err := os.Open(filepath)
+	if err != nil {
+		log.Fatalf("ReadRPCs(%s)::%v", filepath, err)
+	}
+	defer f.Close()
+
+	defaultProtoParser.Parse(f)
+	return defaultProtoParser.GetRPCs()
 }

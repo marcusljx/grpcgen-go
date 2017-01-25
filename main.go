@@ -21,6 +21,9 @@ func main() {
 
 	log.Printf("gopathOutputPath = %s\n", *gopathOutputPath)
 	log.Printf("serverTemplatesFullPath = %s\n", serverTemplatesFullPath)
-	s := serverwriter.NewServerWriter(*gopathOutputPath, serverTemplatesFullPath)
-	s.Create()
+
+	serverwriter.
+		NewServerWriter(*gopathOutputPath).
+		TemplateDir(serverTemplatesFullPath).
+		Create()
 }

@@ -1,0 +1,27 @@
+syntax = "proto3";
+package sample;
+
+
+service BookingService {
+    rpc ProcedureCall_1(Message1) returns (Response1) {}
+    rpc ProcedureCall_2(Message2) returns (Response2) {}
+}
+
+message Message1 {
+    bool someBool = 1;
+    int32 someInt32 = 2;
+}
+
+message Message2 {
+    string someString = 1;
+    float someFloat= 2;
+}
+
+message Response1 {
+    string someString = 1;
+}
+
+message Response2 {
+    Message2 someMessage2 = 1;
+}
+
