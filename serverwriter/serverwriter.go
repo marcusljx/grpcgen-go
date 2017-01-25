@@ -7,7 +7,13 @@ import (
 	"strings"
 	"text/template"
 
+	"log"
+
+	"fmt"
+
 	"github.com/marcusljx/grpcgen-go/functions"
+	"github.com/marcusljx/grpcgen-go/protoparser"
+	"github.com/marcusljx/grpcgen-go/protorep"
 )
 
 const (
@@ -24,41 +30,68 @@ var (
 )
 
 type ServerWriter struct {
-	outputRootPath      string
-	ServerPackageString string
-	Package             string
-	PackagePath         string
-	template            *template.Template
+	ServiceRootFullPath string
+	ServiceName         string
+
+	ServerLogicName       string
+	ServerPackageFullPath string
+	ServerImportPath      string
+
+	ProtoPackageFullPath   string
+	ProtoPackageImportPath string
+	ProtoFileFullPath      string
+
+	Functions []*protorep.RPC
+	template  *template.Template
 }
 
-func NewServerWriter(outputPath, packagePath, templatesPath string) *ServerWriter {
+func createTemplateObject(templatesDirPath string) *template.Template {
 	// Create Server Template
 	tmpl := template.
 		New("ServerWriter").
 		Funcs(funcMap)
-
 	// Read all serverwriter templates
-	files, err := ioutil.ReadDir(templatesPath)
+	files, err := ioutil.ReadDir(templatesDirPath)
 	functions.CheckFatal(err)
-
 	for _, fInfo := range files {
-		_, err := tmpl.ParseFiles(filepath.Join(templatesPath, fInfo.Name()))
+		_, err := tmpl.ParseFiles(filepath.Join(templatesDirPath, fInfo.Name()))
 		functions.CheckFatal(err)
 	}
+	return tmpl
+}
+
+func NewServerWriter(gopathOutputPath, serverTemplatesFullPath string) *ServerWriter {
+	serviceName := filepath.Base(gopathOutputPath)
+	serviceRootFullPath := functions.QualifyFromGopathSrc(gopathOutputPath)
+
+	protoPackageImportPath := filepath.Join(gopathOutputPath, serviceName)
+	protoPackageFullPath := functions.QualifyFromGopathSrc(protoPackageImportPath)
+	protoFileFullPath := filepath.Join(protoPackageFullPath, fmt.Sprintf("%s.%s", serviceName, "proto"))
+
+	serverImportPath := filepath.Join(gopathOutputPath, "server")
+	serverPackageFullPath := functions.QualifyFromGopathSrc(serverImportPath)
 
 	return &ServerWriter{
-		outputRootPath:      outputPath,
-		ServerPackageString: "server",
-		Package:             filepath.Base(packagePath),
-		PackagePath:         packagePath,
-		template:            tmpl,
+		ServiceRootFullPath:    serviceRootFullPath,
+		ServiceName:            serviceName,
+		ServerPackageFullPath:  serverPackageFullPath,
+		ServerImportPath:       serverImportPath,
+		ProtoPackageFullPath:   protoPackageFullPath,
+		ProtoPackageImportPath: protoPackageImportPath,
+		ProtoFileFullPath:      protoFileFullPath,
+		template:               createTemplateObject(serverTemplatesFullPath),
+		Functions:              protoparser.ReadRPCs(protoFileFullPath),
 	}
 }
 
 func (s *ServerWriter) Create() {
 	// Setup File
-	err := os.Mkdir(s.outputRootPath, os.ModePerm)
-	functions.CheckFatal(err)
+	err := os.Mkdir(s.ServerPackageFullPath, os.ModePerm)
+	if err != nil {
+		if os.IsExist(err) {
+			log.Printf("WARNING: server package already exists. It will be overwritten.")
+		}
+	}
 
 	s.CreateStartServerMainFile()
 	s.CreateServerLogicStructFile()
@@ -66,11 +99,16 @@ func (s *ServerWriter) Create() {
 }
 
 func (s *ServerWriter) CreateServerLogicFuncFile() {
-	//TODO
+	f, err := s.newServerPackageFile("server_logic.go")
+	functions.CheckFatal(err)
+	defer f.Close()
+
+	err = s.template.ExecuteTemplate(f, serverLogicFuncTemplatePath, s)
+
 }
 
 func (s *ServerWriter) CreateStartServerMainFile() {
-	f, err := os.Create(filepath.Join(filepath.Dir(s.outputRootPath), "start_server.go"))
+	f, err := os.Create(filepath.Join(s.ServiceRootFullPath, "start_server.go"))
 	functions.CheckFatal(err)
 	defer f.Close()
 
@@ -79,7 +117,7 @@ func (s *ServerWriter) CreateStartServerMainFile() {
 }
 
 func (s *ServerWriter) CreateServerLogicStructFile() {
-	f, err := s.newFile("server_struct.go")
+	f, err := s.newServerPackageFile("server_struct.go")
 	functions.CheckFatal(err)
 	defer f.Close()
 
@@ -88,6 +126,6 @@ func (s *ServerWriter) CreateServerLogicStructFile() {
 }
 
 //------------------------------------------- LOCAL FUNCTIONS
-func (s *ServerWriter) newFile(filename string) (*os.File, error) {
-	return os.Create(filepath.Join(s.outputRootPath, filename))
+func (s *ServerWriter) newServerPackageFile(filename string) (*os.File, error) {
+	return os.Create(filepath.Join(s.ServerPackageFullPath, filename))
 }
