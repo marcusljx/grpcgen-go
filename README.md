@@ -2,9 +2,36 @@
 Generating Client Code and Server Boilerplate using gRPC
 
 [![Build Status](https://travis-ci.org/marcusljx/grpcgen-go.svg?branch=master)](https://travis-ci.org/marcusljx/grpcgen-go)
-<!-- [![codecov](https://codecov.io/gh/marcusljx/grpcgen-go/branch/master/graph/badge.svg)](https://codecov.io/gh/marcusljx/grpcgen-go) -->
 [![Coverage Status](https://coveralls.io/repos/github/marcusljx/grpcgen-go/badge.svg?branch=master)](https://coveralls.io/github/marcusljx/grpcgen-go?branch=master)
 [![Issue Count](https://codeclimate.com/github/marcusljx/grpcgen-go/badges/issue_count.svg)](https://codeclimate.com/github/marcusljx/grpcgen-go)
+<!-- [![codecov](https://codecov.io/gh/marcusljx/grpcgen-go/branch/master/graph/badge.svg)](https://codecov.io/gh/marcusljx/grpcgen-go) -->
+
+## Setup
+First, go install Protocol Buffers and its Go plugin. Instructions can be found at http://www.grpc.io/docs/quickstart/go.html. This package requires `Protobuf3.0+` to work!
+
+Then go get this package
+```
+go get http://gopkg.in/marcusljx/grpcgen-go.v0
+```
+
+## Generating boilerplate code
+To create a new service called `abc`, set up your project structure as follows:
+```
+abc
+└── abc
+    ├── doc.go
+    └── abc.proto
+```
+Within `doc.go`, you can put all your package `Overview` documentation (a la `godoc`). At the bottom, add these lines:
+```
+//go:generate protoc -I=. --go_out=plugins=grpc:. ./grpctutorial.proto
+//go:generate grpcgen-go --gopath-output=github.com/marcusljx/grpctutorial
+```
+To generate your code, run `go generate` within your INNER `abc` directory.
+
+## Documentation
+https://godoc.org/gopkg.in/marcusljx/grpcgen-go.v0
+
 
 This project is still in pre-alpha stage. Do not use in production!
 
